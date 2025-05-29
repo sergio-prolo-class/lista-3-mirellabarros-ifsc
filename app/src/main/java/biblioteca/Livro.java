@@ -30,4 +30,26 @@ public class Livro {
         List<Autor> autores = new ArrayList<>(this.autores);
         return autores;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        // Verifica se é o mesmo objeto (mesmo endereço de memória)
+        if (this == obj) {
+            return true;
+        }
+
+        // Verifica se é um objeto do tipo Autor
+        if (!(obj instanceof Livro)) {
+            return false;
+        }
+
+        // Verifica se o leitor já existe
+        Livro l = (Livro) obj;
+        return this.titulo.equals(l.titulo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(titulo);
+    }
 }
