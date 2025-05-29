@@ -1,5 +1,7 @@
 package biblioteca;
 
+import java.util.Objects;
+
 public class Autor {
     private String nome;
     private String idioma;
@@ -15,5 +17,30 @@ public class Autor {
 
     public String getIdioma() {
         return idioma;
+    }
+
+    // Sobrescreve o equals.
+    // Compara o nome do autor.
+    @Override
+    public boolean equals(Object obj) {
+        // Verifica se é o mesmo objeto (mesmo endereço de memória)
+        if (this == obj) {
+            return true;
+        }
+
+        // Verifica se é um objeto do tipo Autor
+        if (!(obj instanceof Autor)) {
+            return false;
+        }
+
+        // Verifica se o autor já existe
+        Autor a = (Autor) obj;
+        return this.nome.equals(a.nome);
+    }
+
+    // Sobrescreve o hashCode
+    @Override
+    public int hashCode() {
+        return Objects.hash(nome);
     }
 }

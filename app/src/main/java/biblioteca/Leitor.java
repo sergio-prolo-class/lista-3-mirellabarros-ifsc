@@ -1,5 +1,6 @@
 package biblioteca;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class Leitor {
@@ -9,13 +10,11 @@ public class Leitor {
     private String telefone = "";
 
     public Leitor(String nome, String endereco, String telefone) {
-        if (!nome.isEmpty() && !endereco.isEmpty() && telefone.isEmpty()) {
-            Random random = new Random();
-            this.id = random.nextInt(9999) + 1;
-            this.nome = nome;
-            this.endereco = endereco;
-            this.telefone = telefone;
-        }
+        Random random = new Random();
+        this.id = random.nextInt(9999) + 1;
+        this.nome = nome;
+        this.endereco = endereco;
+        this.telefone = telefone;
     }
 
     public int getId() {
@@ -32,5 +31,27 @@ public class Leitor {
 
     public String getTelefone() {
         return telefone;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        // Verifica se é o mesmo objeto (mesmo endereço de memória)
+        if (this == obj) {
+            return true;
+        }
+
+        // Verifica se é um objeto do tipo Autor
+        if (!(obj instanceof Leitor)) {
+            return false;
+        }
+
+        // Verifica se o leitor já existe
+        Leitor l = (Leitor) obj;
+        return this.nome.equals(l.nome);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(nome);
     }
 }
