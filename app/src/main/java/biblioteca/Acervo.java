@@ -7,6 +7,7 @@ public class Acervo {
     private int qtdTotalDeLivros = 0;
     private int qtdDisponivel = 0;
 
+    // Cria um acervo com o objeto livro e quantidade fornecida pelo usuário
     public Acervo(Livro livro, int quantidade) {
         this.livro = livro;
         this.qtdTotalDeLivros = quantidade;
@@ -25,11 +26,8 @@ public class Acervo {
         return qtdDisponivel;
     }
 
+    // Metodo usado para decrementar a quantidade disponível ao emprestar um livro
     public void emprestarLivro() {
-        qtdDisponivel--;
-    }
-
-    public void devolverLivro() {
         qtdDisponivel--;
     }
 }

@@ -31,6 +31,8 @@ public class Livro {
         return autores;
     }
 
+    // Sobrescreve o equals.
+    // Compara o título do livro.
     @Override
     public boolean equals(Object obj) {
         // Verifica se é o mesmo objeto (mesmo endereço de memória)
@@ -44,8 +46,8 @@ public class Livro {
         }
 
         // Verifica se o leitor já existe
-        Livro l = (Livro) obj;
-        return this.titulo.equals(l.titulo);
+        Livro livro = (Livro) obj;
+        return this.titulo.equals(livro.titulo);
     }
 
     @Override

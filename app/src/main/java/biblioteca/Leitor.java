@@ -9,6 +9,7 @@ public class Leitor {
     private String endereco = "";
     private String telefone = "";
 
+    // Cria um novo leitor e atribui um ID com valor aleatório. Menor valor é 1.
     public Leitor(String nome, String endereco, String telefone) {
         Random random = new Random();
         this.id = random.nextInt(9999) + 1;
@@ -33,6 +34,8 @@ public class Leitor {
         return telefone;
     }
 
+    // Sobrescreve o equals.
+    // Compara o nome do leitor.
     @Override
     public boolean equals(Object obj) {
         // Verifica se é o mesmo objeto (mesmo endereço de memória)
@@ -46,8 +49,8 @@ public class Leitor {
         }
 
         // Verifica se o leitor já existe
-        Leitor l = (Leitor) obj;
-        return this.nome.equals(l.nome);
+        Leitor leitor = (Leitor) obj;
+        return this.nome.equals(leitor.nome);
     }
 
     @Override

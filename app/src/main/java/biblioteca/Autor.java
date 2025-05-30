@@ -34,8 +34,8 @@ public class Autor {
         }
 
         // Verifica se o autor já existe
-        Autor a = (Autor) obj;
-        return this.nome.equals(a.nome);
+        Autor autor = (Autor) obj;
+        return this.nome.equals(autor.nome);
     }
 
     // Sobrescreve o hashCode

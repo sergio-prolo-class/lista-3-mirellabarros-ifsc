@@ -1,9 +1,9 @@
 package biblioteca;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public class Gerenciador {
     Set<Acervo> acervoDeLivros = new LinkedHashSet<>();
@@ -24,23 +24,9 @@ public class Gerenciador {
             return false;
         }
 
+        // Adiciona um autor
         this.autores.add(autor);
         return true;
-    }
-
-    // Busca por um autor no Set autores
-    public Autor buscarAutor(String nome) {
-        if (nome.isEmpty()) {
-            return null;
-        }
-
-        for (Autor autor : this.autores) {
-            if (autor.getNome().equalsIgnoreCase(nome)) {
-                return autor;
-            }
-        }
-
-        return null;
     }
 
     // Cadastra um novo leitor
@@ -57,13 +43,93 @@ public class Gerenciador {
             return false;
         }
 
-        // Adiciona o leitor ao Set
+        // Adiciona o leitor ao Set leitores
         this.leitores.add(leitor);
         return true;
     }
 
-    // Busca por um leitor no Set leitores
-    public Leitor buscarLeitor(String nome) {
+    // Cadastra novo livro e o adiciona ao acervo
+    public boolean cadastrarLivro(String titulo, String isbn, int quantidade, String ...autores){
+        // Verifica se os parâmetros são vazios
+        if (titulo.isEmpty() && isbn.isEmpty() && quantidade < 0 && autores.length == 0) {
+            return false;
+        }
+
+        // Cria uma List de autores cujos valores estão no array autores
+        // Os autores são buscados no Set autores e os objetos adicionados à lista de autores
+        List<Autor> listaDeAutores = new ArrayList<>();
+        for (String autor : autores) {
+            Autor a = buscarAutor(autor);
+            if (a != null) {
+                listaDeAutores.add(a);
+            }
+        }
+
+        // Cria um objeto novoLivro e a List de autores é convertida e um array de forma que um novo livro possa receber
+        // diversos objetos do tipo autor
+        Livro novoLivro = new Livro(titulo, isbn, listaDeAutores.toArray(new Autor[0]));
+        // Adiciona o novo livro ao acervo definindo a quantidade disponível
+        Acervo novoAcervo = new Acervo(novoLivro, quantidade);
+        this.acervoDeLivros.add(novoAcervo);
+        return true;
+    }
+
+    // Cadastra um novo empréstimo de livro
+    public boolean cadastrarEmprestimo(String titulo, String leitor, String dataEmprestimo){
+        // Verifica se os parâmetros informados são vazios
+        if (titulo.isEmpty() && leitor.isEmpty()) {
+            return false;
+        }
+
+        // Retorna os objetos referentes aos parâmetros fornecidos
+        Leitor objLeitor = buscarLeitor(leitor);
+        Livro objLivro = buscarLivro(titulo);
+
+        // Verifica se os objetos são nulos
+        if (objLeitor == null || objLivro == null) {
+            return false;
+        }
+
+        // Retorna a quantidade de livros disponíveis no acervo
+        Acervo objAcervo = this.acervoDeLivros.stream().filter(livro -> livro.getLivro().equals(objLivro))
+                .findFirst().orElse(null);
+        int qtdDisponivel = objAcervo.getQtdDisponivel();
+
+        // Retorna se o leitor já possui o livro que deseja tomar emprestado
+        boolean leitorPossuiEsteLivro = this.emprestimos.stream()
+                .anyMatch(e -> e.getLeitor().equals(objLeitor) && e.getLivro().equals(objLivro));
+
+        // Retorna a quantidade de livros emprestados ao leitor
+        int qtdLivrosEmprestados = (int) this.emprestimos.stream()
+                .filter(e -> e.getLeitor().equals(objLeitor)).count();
+
+        // Para que um livro seja emprestado, a quantidade disponível no acervo deve ser maior do que 0, o leitor
+        // não pode possuir o livro e o leitor também deve ter menos do que 5 livros emprestados.
+        if (qtdDisponivel > 0 && !leitorPossuiEsteLivro && qtdLivrosEmprestados < 5) {
+            Emprestimo emprestimo = new Emprestimo(objLeitor, objAcervo, dataEmprestimo);
+            this.emprestimos.add(emprestimo);
+            return true;
+        }
+        return false;
+    }
+
+    // Busca por um autor no Set autores usando String - metodo auxiliar
+    private Autor buscarAutor(String nome) {
+        if (nome.isEmpty()) {
+            return null;
+        }
+
+        for (Autor autor : this.autores) {
+            if (autor.getNome().equalsIgnoreCase(nome)) {
+                return autor;
+            }
+        }
+
+        return null;
+    }
+
+    // Busca por um leitor no Set leitores - metodo auxiliar
+    private Leitor buscarLeitor(String nome) {
         if (nome.isEmpty()) {
             return null;
         }
@@ -77,28 +143,7 @@ public class Gerenciador {
         return null;
     }
 
-    // Cadastra novo livro e o adiciona ao acervo
-    public boolean cadastrarLivro(String titulo, String isbn, int quantidade, String ...autores){
-        if (titulo.isEmpty() && isbn.isEmpty() && quantidade < 0 && autores.length == 0) {
-            return false;
-        }
-
-        List<Autor> listaDeAutores = new ArrayList<>();
-        for (String autor : autores) {
-            Autor a = buscarAutor(autor);
-            if (a != null) {
-                listaDeAutores.add(a);
-            }
-        }
-
-        Livro novoLivro = new Livro(titulo, isbn, listaDeAutores.toArray(new Autor[0]));
-        Acervo novoAcervo = new Acervo(novoLivro, quantidade);
-        this.acervoDeLivros.add(novoAcervo);
-        return true;
-
-    }
-
-    // Busca por um livro no Set acervoDeLivros
+    // Busca por um livro no Set acervoDeLivros - metodo auxiliar
     private Livro buscarLivro(String nome) {
         if (nome.isEmpty()) {
             return null;
@@ -112,6 +157,7 @@ public class Gerenciador {
         return null;
     }
 
+    // Retorna todos os autores cadastrados em uma String, ordenados por nome
     public String listarAutores() {
         List<Autor> listaDeAutores = new ArrayList<>(this.autores);
 
@@ -132,6 +178,7 @@ public class Gerenciador {
         return resultado;
     }
 
+    // Retorna todos os autores cadastrados em uma String, ordenados por nome ou id
     public String listarLeitores(String ordenacao) {
         if (ordenacao.isEmpty()) {
             return null;
@@ -159,15 +206,16 @@ public class Gerenciador {
         resultado += "ID, Nome, Endereco, Telefone\n";
         resultado += "---------------------------------\n";
         for (Leitor leitor : listaDeLeitores) {
-            resultado += leitor.getId() + ", ";
-            resultado += leitor.getNome() + ", ";
-            resultado += leitor.getEndereco() + ", ";
+            resultado += leitor.getId() + " | ";
+            resultado += leitor.getNome() + "\t ";
+            resultado += leitor.getEndereco() + "\t ";
             resultado += leitor.getTelefone() + "\n";
         }
 
         return resultado;
     }
 
+    // Retorna todos o acervo cadastrado em uma String, ordenados por título, isbn ou autor
     public String listarAcervo(String ordenacao) {
         if (ordenacao.isEmpty()) {
             return null;
@@ -198,6 +246,7 @@ public class Gerenciador {
         }
 
         String resultado = "";
+        resultado += "Acervo de livros ordenados por " + ordenacao + "\n";
         resultado += "---------------------------------\n";
         resultado += "Titulo, Autores, ISBN, Quantidade\n";
         resultado += "---------------------------------\n";
@@ -212,40 +261,58 @@ public class Gerenciador {
         return resultado;
     }
 
-    public boolean cadastrarEmprestimo(String titulo, String leitor){
-        // Verifica se os parâmetros informados são vazios
-        if (titulo.isEmpty() && leitor.isEmpty()) {
-            return false;
+    // Retorna todos os empréstimos cadastrados em uma String, ordenados por data de empréstimo
+    public String listarEmprestimos() {
+        List<Emprestimo> listaDeEmprestimos = new ArrayList<>(this.emprestimos);
+        listaDeEmprestimos.sort((emprestimo1, emprestimo2) -> {
+            LocalDate e1 = emprestimo1.getDataEmprestimo();
+            LocalDate e2 = emprestimo2.getDataEmprestimo();
+            return e1.compareTo(e2);
+        });
+        String resultado = "";
+        resultado += "---------------------------------\n";
+        resultado += "Titulo, Leitor, Data\n";
+        resultado += "---------------------------------\n";
+        for (Emprestimo emprestimo : listaDeEmprestimos) {
+            resultado += emprestimo.getLivro().getTitulo() + ", ";
+            resultado += emprestimo.getLeitor().getNome() + ", ";
+            resultado += emprestimo.getDataEmprestimoFormatada() + "\n";
+        }
+        return resultado;
+    }
+
+    // Sobrescreve o metodo listarEmprestimos com resultados filtrados por um leitor. A impressão muda
+    // para não repetir o nome do leitor em cada livros emprestado.
+    public String listarEmprestimos(String leitor) {
+        if (leitor.isEmpty()) {
+            return null;
         }
 
-        // Retorna os objetos referentes aos parâmetros fornecidos
-        Leitor objLeitor = buscarLeitor(leitor);
-        Livro objLivro = buscarLivro(titulo);
-
-        // Verifica se os objetos são nulos
-        if (objLeitor == null || objLivro == null) {
-            return false;
+        Leitor l = this.buscarLeitor(leitor);
+        if (l == null) {
+            return null;
         }
 
-        // Retorna a quantidade de livros disponíveis
-        Acervo objAcervo = this.acervoDeLivros.stream().filter(livro -> livro.getLivro().equals(objLivro))
-                .findFirst().orElse(null);
-        int qtdDisponivel = objAcervo.getQtdDisponivel();
+        List<Emprestimo> listaDeEmprestimos = this.emprestimos.stream()
+                .filter(emprestimo -> emprestimo.getLeitor().equals(l))
+                .collect(Collectors.toList());
 
-        // Retorna se o leitor já possui o livro que deseja tomar emprestado
-        boolean leitorPossuiEsteLivro = this.emprestimos.stream()
-                .anyMatch(e -> e.getLeitor().equals(objLeitor) && e.getLivro().equals(objLivro));
+        listaDeEmprestimos.sort((emprestimo1, emprestimo2) -> {
+            LocalDate e1 = emprestimo1.getDataEmprestimo();
+            LocalDate e2 = emprestimo2.getDataEmprestimo();
+            return e1.compareTo(e2);
+        });
 
-        // Retorna a quantidade de livros emprestados ao leitor
-        int qtdLivrosEmprestados = (int) this.emprestimos.stream()
-                .filter(e -> e.getLeitor().equals(objLeitor)).count();
-
-        if (qtdDisponivel > 0 && !leitorPossuiEsteLivro && qtdLivrosEmprestados < 5) {
-            Emprestimo emprestimo = new Emprestimo(objLeitor, objAcervo);
-            this.emprestimos.add(emprestimo);
-            return true;
+        String resultado = "";
+        resultado += "Livros emprestados por: " + l.getNome() + "\n";
+        resultado += "---------------------------------\n";
+        resultado += "Titulo, Data\n";
+        resultado += "---------------------------------\n";
+        for (Emprestimo emprestimo : listaDeEmprestimos) {
+            resultado += emprestimo.getLivro().getTitulo() + ", ";
+            resultado += emprestimo.getDataEmprestimoFormatada() + "\n";
         }
-        return false;
+        return resultado;
     }
 
 
